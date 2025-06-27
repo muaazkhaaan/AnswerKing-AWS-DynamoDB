@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AnswerKing API
+Transform: AWS::Serverless-2016-10-31 # Tell AWS treat this file as a SAM template
+
+Parameters:
+  DeployedByTag:
+    Description: Standard deploy tag
+    Type: String
+    Default: Muaaz
+
+Resources:
+  CreateCategoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Categories/create_category.lambda_handler
+      Runtime: python3.13
+      Events:
+        CreateCategoryAPI:
+          Type: Api
+          Properties:
+            Path: /categories
+            Method: POST
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: AnswerKingDB
+      Tags:
+        Project: AnswerKing
+        deployed-by: !Ref DeployedByTag
+
+Outputs:
+  CreateCategoryApiUrl:
+    Description: "API Gateway endpoint URL for creating categories // POST"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories"
