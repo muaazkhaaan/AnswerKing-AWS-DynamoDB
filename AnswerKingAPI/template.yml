@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: AnswerKing API
-Transform: AWS::Serverless-2016-10-31 # Tell AWS treat this file as a SAM template
+Transform: AWS::Serverless-2016-10-31
 
 Parameters:
   DeployedByTag:
@@ -51,10 +51,10 @@ Resources:
       Handler: Categories/view_items_by_category.lambda_handler
       Runtime: python3.13
       Events:
-        ApiGetItems:
+        ApiGetItemsByCategory:
           Type: Api
           Properties:
-            Path: /categories/{id}/items
+            Path: /categories/{category_id}/items
             Method: GET
       Policies:
         - DynamoDBReadPolicy:
@@ -81,6 +81,42 @@ Resources:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag
 
+  DeleteItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Items/delete_item.lambda_handler
+      Runtime: python3.13
+      Events:
+        DeleteItemAPI:
+          Type: Api
+          Properties:
+            Path: /categories/{category_id}/items/{item_id}
+            Method: DELETE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: AnswerKingDB
+      Tags:
+        Project: AnswerKing
+        deployed-by: !Ref DeployedByTag
+
+  DeleteCategoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Categories/delete_category.lambda_handler
+      Runtime: python3.13
+      Events:
+        DeleteCategoryAPI:
+          Type: Api
+          Properties:
+            Path: /categories/{category_id}
+            Method: DELETE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: AnswerKingDB
+      Tags:
+        Project: AnswerKing
+        deployed-by: !Ref DeployedByTag
+
 Outputs:
   CreateCategoryApiUrl:
     Description: "API Gateway endpoint URL for creating categories // POST"
@@ -91,9 +127,17 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
 
   GetItemsByCategoryApiUrl:
-    Description: "API Gateway endpoint URL for creating items // GET"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{id}/items"
+    Description: "API Gateway endpoint URL for viewing items by category // GET"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}/items"
 
   GetItemsApiUrl:
-    Description: "API Gateway endpoint URL for creating items // GET"
+    Description: "API Gateway endpoint URL for viewing all items // GET"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
+
+  DeleteItemApiUrl:
+    Description: "API Gateway endpoint URL for deleting item // DELETE"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}/items/{item_id}"
+
+  DeleteCategoryApiUrl:
+    Description: "API Gateway endpoint URL for deleting category // DELETE"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
