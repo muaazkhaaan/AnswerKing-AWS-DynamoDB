@@ -117,6 +117,24 @@ Resources:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag
 
+  ViewAllCategoriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Categories/view_categories.lambda_handler
+      Runtime: python3.13
+      Events:
+        ApiGetCategories:
+          Type: Api
+          Properties:
+            Path: /categories
+            Method: GET
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: AnswerKingDB
+      Tags:
+        Project: AnswerKing
+        deployed-by: !Ref DeployedByTag
+
 Outputs:
   CreateCategoryApiUrl:
     Description: "API Gateway endpoint URL for creating categories // POST"
@@ -141,3 +159,7 @@ Outputs:
   DeleteCategoryApiUrl:
     Description: "API Gateway endpoint URL for deleting category // DELETE"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
+
+  ViewAllCategoriesApiUrl:
+    Description: "API Gateway endpoint URL for deleting category // GET"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories"
