@@ -13,8 +13,7 @@ def lambda_handler(event, context):
                 'statusCode': 400,
                 'body': json.dumps({'error': 'Missing category_id'})
             }
-
-        # Delete category metadata
+        
         table.delete_item(
             Key={
                 'PK': f'CATEGORY#{category_id}',

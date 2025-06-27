@@ -54,7 +54,7 @@ Resources:
         ApiGetItemsByCategory:
           Type: Api
           Properties:
-            Path: /categories/{category_id}/items
+            Path: /categories/{category_id}/items/{item_id}
             Method: GET
       Policies:
         - DynamoDBReadPolicy:
@@ -84,7 +84,7 @@ Resources:
   DeleteItemFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: Items/delete_item.lambda_handler
+      Handler: Items/delete_items.lambda_handler
       Runtime: python3.13
       Events:
         DeleteItemAPI:
