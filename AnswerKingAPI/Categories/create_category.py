@@ -3,7 +3,7 @@ import boto3
 import uuid
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('YourTableName')  # Replace with actual table name
+table = dynamodb.Table('AnswerKingDB')
 
 def lambda_handler(event, context):
     try:
@@ -18,14 +18,14 @@ def lambda_handler(event, context):
 
         category_id = str(uuid.uuid4())
 
-        item = {
+        category = {
             'PK': f'CATEGORY#{category_id}',
             'SK': 'METADATA',
             'name': category_name,
             'type': 'category'
         }
 
-        table.put_item(Item=item)
+        table.put_item(Item=category)
 
         return {
             'statusCode': 201,

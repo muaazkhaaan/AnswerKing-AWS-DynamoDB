@@ -27,7 +27,29 @@ Resources:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag
 
+  CreateItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Items/create_item.lambda_handler
+      Runtime: python3.13
+      Events:
+        CreateItemAPI:
+          Type: Api
+          Properties:
+            Path: /items
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: AnswerKingDB
+      Tags:
+        Project: AnswerKing
+        deployed-by: !Ref DeployedByTag
+
 Outputs:
   CreateCategoryApiUrl:
     Description: "API Gateway endpoint URL for creating categories // POST"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories"
+
+  CreateItemApiUrl:
+    Description: "API Gateway endpoint URL for creating items // POST"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
