@@ -63,6 +63,24 @@ Resources:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag
 
+  ViewAllItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Items/view_items.lambda_handler
+      Runtime: python3.13
+      Events:
+        ApiGetItems:
+          Type: Api
+          Properties:
+            Path: /items
+            Method: GET
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: AnswerKingDB
+      Tags:
+        Project: AnswerKing
+        deployed-by: !Ref DeployedByTag
+
 Outputs:
   CreateCategoryApiUrl:
     Description: "API Gateway endpoint URL for creating categories // POST"
@@ -73,5 +91,9 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
 
   GetItemsByCategoryApiUrl:
-    Description: "API Gateway endpoint URL for creating items // POST"
+    Description: "API Gateway endpoint URL for creating items // GET"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{id}/items"
+
+  GetItemsApiUrl:
+    Description: "API Gateway endpoint URL for creating items // GET"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
