@@ -33,9 +33,12 @@ def lambda_handler(event, context):
                 'body': json.dumps({'error': 'Invalid category_id: does not exist'})
             }
 
+        item_id = str(uuid.uuid4())
+
         item = {
             'PK': category_id,
-            'SK': f'item#{str(uuid.uuid4())}',
+            'SK': f'item#{item_id}',
+            'itemID': item_id,
             'name': name,
             'price': Decimal(str(price)),
             'description': description,
