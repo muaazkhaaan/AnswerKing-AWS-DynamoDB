@@ -153,6 +153,24 @@ Resources:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag  
 
+  UpdateCategoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Categories/update_category.lambda_handler
+      Runtime: python3.13
+      Events:
+        UpdateCategoryAPI:
+          Type: Api
+          Properties:
+            Path: /categories/{category_id}
+            Method: PUT
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: AnswerKingDB
+      Tags:
+        Project: AnswerKing
+        deployed-by: !Ref DeployedByTag  
+
 Outputs:
   CreateCategoryApiUrl:
     Description: "API Gateway endpoint URL for creating categories // POST"
@@ -179,9 +197,13 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
 
   ViewAllCategoriesApiUrl:
-    Description: "API Gateway endpoint URL for deleting category // GET"
+    Description: "API Gateway endpoint URL for viewing all categories // GET"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories"
 
   UpdateItemApiUrl:
-    Description: "API Gateway endpoint URL for deleting item // PUT"
+    Description: "API Gateway endpoint URL for update item // PUT"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}/items/{item_id}"
+
+  UpdateCategoryApiUrl:
+    Description: "API Gateway endpoint URL for updating category // PUT"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
