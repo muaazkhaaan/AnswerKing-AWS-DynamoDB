@@ -171,6 +171,24 @@ Resources:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag  
 
+  CreateOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Orders/create_order.lambda_handler
+      Runtime: python3.13
+      Events:
+        CreateOrderAPI:
+          Type: Api
+          Properties:
+            Path: /orders
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: AnswerKingDB
+      Tags:
+        Project: AnswerKing
+        deployed-by: !Ref DeployedByTag
+
 Outputs:
   CreateCategoryApiUrl:
     Description: "API Gateway endpoint URL for creating categories // POST"
@@ -207,3 +225,7 @@ Outputs:
   UpdateCategoryApiUrl:
     Description: "API Gateway endpoint URL for updating category // PUT"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
+
+  CreateOrderApiUrl:
+    Description: "API Gateway endpoint URL for creating orders // POST"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orders"
