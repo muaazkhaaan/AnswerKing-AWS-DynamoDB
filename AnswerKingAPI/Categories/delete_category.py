@@ -14,11 +14,14 @@ def lambda_handler(event, context):
                 'body': json.dumps({'error': 'Missing category_id'})
             }
         
-        table.delete_item(
+        table.update_item(
             Key={
                 'PK': f'CATEGORY#{category_id}',
                 'SK': 'METADATA'
-            }
+            },
+            UpdateExpression='SET deleted = :deleted',
+            ExpressionAttributeValues={':deleted': True},
+            ConditionExpression='attribute_exists(PK) AND attribute_exists(SK)'
         )
 
         return {

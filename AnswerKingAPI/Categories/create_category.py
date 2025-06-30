@@ -22,7 +22,8 @@ def lambda_handler(event, context):
             'PK': f'CATEGORY#{category_id}',
             'SK': 'METADATA',
             'name': category_name,
-            'type': 'category'
+            'type': 'category',
+            'deleted': False
         }
 
         table.put_item(Item=category)

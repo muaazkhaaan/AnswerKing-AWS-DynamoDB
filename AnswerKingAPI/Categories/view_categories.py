@@ -7,9 +7,12 @@ table = dynamodb.Table('AnswerKingDB')
 def lambda_handler(event, context):
     try:
         response = table.scan(
-            FilterExpression='#type = :category',
+            FilterExpression='#type = :category AND deleted = :deleted',
             ExpressionAttributeNames={'#type': 'type'},
-            ExpressionAttributeValues={':category': 'category'}
+            ExpressionAttributeValues={
+                ':category': 'category',
+                ':deleted': False
+            }
         )
 
         categories = response.get('Items', [])

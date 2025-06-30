@@ -54,7 +54,7 @@ Resources:
         ApiGetItemsByCategory:
           Type: Api
           Properties:
-            Path: /categories/{category_id}/items/{item_id}
+            Path: /categories/{category_id}/items
             Method: GET
       Policies:
         - DynamoDBReadPolicy:
@@ -91,7 +91,7 @@ Resources:
           Type: Api
           Properties:
             Path: /categories/{category_id}/items/{item_id}
-            Method: DELETE
+            Method: PATCH
       Policies:
         - DynamoDBCrudPolicy:
             TableName: AnswerKingDB
@@ -109,7 +109,7 @@ Resources:
           Type: Api
           Properties:
             Path: /categories/{category_id}
-            Method: DELETE
+            Method: PATCH
       Policies:
         - DynamoDBCrudPolicy:
             TableName: AnswerKingDB
@@ -171,11 +171,11 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
 
   DeleteItemApiUrl:
-    Description: "API Gateway endpoint URL for deleting item // DELETE"
+    Description: "API Gateway endpoint URL for deleting item // PATCH"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}/items/{item_id}"
 
   DeleteCategoryApiUrl:
-    Description: "API Gateway endpoint URL for deleting category // DELETE"
+    Description: "API Gateway endpoint URL for deleting category // PATCH"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
 
   ViewAllCategoriesApiUrl:

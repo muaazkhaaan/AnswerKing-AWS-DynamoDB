@@ -1,6 +1,6 @@
 import json
 import boto3
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 from decimal import Decimal
 
 dynamodb = boto3.resource('dynamodb')
@@ -14,7 +14,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 def lambda_handler(event, context):
     try:
-        category_id = event.get('pathParameters', {}).get('id', '').strip()
+        category_id = event.get('pathParameters', {}).get('category_id', '').strip()
 
         if not category_id:
             return {
@@ -26,7 +26,8 @@ def lambda_handler(event, context):
 
         # Query all SKs starting with 'item#' under the given PK
         response = table.query(
-            KeyConditionExpression=Key('PK').eq(pk_value) & Key('SK').begins_with('item#')
+            KeyConditionExpression=Key('PK').eq(pk_value) & Key('SK').begins_with('item#'),
+            FilterExpression=Attr('deleted').eq(False)
         )
 
         items = response.get('Items', [])

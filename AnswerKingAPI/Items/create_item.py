@@ -39,7 +39,8 @@ def lambda_handler(event, context):
             'name': name,
             'price': Decimal(str(price)),
             'description': description,
-            'type': 'item'
+            'type': 'item',
+            'deleted': False
         }
 
         table.put_item(Item=item)

@@ -15,8 +15,11 @@ class DecimalEncoder(json.JSONEncoder):
 def lambda_handler(event, context):
     try:
         response = table.scan(
-            FilterExpression="begins_with(SK, :itemPrefix)",
-            ExpressionAttributeValues={":itemPrefix": "item#"}
+            FilterExpression="begins_with(SK, :prefix) AND deleted = :deleted",
+            ExpressionAttributeValues={
+                ":prefix": "item#",
+                ":deleted": False
+            }
         )
 
         items = response.get('Items', [])
