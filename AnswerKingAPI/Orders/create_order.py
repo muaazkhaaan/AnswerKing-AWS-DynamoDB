@@ -3,7 +3,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from decimal import Decimal
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 dynamodb = boto3.resource('dynamodb')
@@ -57,7 +57,7 @@ def lambda_handler(event, context):
             total_price += price * Decimal(str(quantity))
 
         order_id = str(uuid.uuid4())
-        timestamp = datetime.now().strftime('%d/%m/%y-%H:%M')
+        timestamp = datetime.now(timezone.utc)
 
         order_item = {
             'PK': f'ORDER#{order_id}',
