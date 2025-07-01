@@ -30,7 +30,7 @@ def lambda_handler(event, context):
         if not order:
             return {
                 'statusCode': 404,
-                'body': json.dumps({'error': 'Order not found'})
+                'body': json.dumps({'error': 'Order does not exist. Check the order number and try again.'})
             }
 
         order_list = order.get('orderList', [])
