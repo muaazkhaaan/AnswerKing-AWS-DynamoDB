@@ -1,19 +1,14 @@
-import json
 import boto3
+from utils.response import success_response, error_response, handle_exception
+from utils.validation import get_path_param
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
 
 def lambda_handler(event, context):
     try:
-        category_id = event.get('pathParameters', {}).get('category_id', '').strip()
+        category_id = get_path_param(event, 'category_id')
 
-        if not category_id:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'Missing category_id'})
-            }
-        
         table.update_item(
             Key={
                 'PK': f'CATEGORY#{category_id}',
@@ -24,13 +19,10 @@ def lambda_handler(event, context):
             ConditionExpression='attribute_exists(PK) AND attribute_exists(SK)'
         )
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'message': 'Category deleted successfully'})
-        }
+        return success_response(200, {'message': 'Category deleted successfully'})
 
+    except ValueError as ve:
+        return error_response(400, str(ve))
+        
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return handle_exception(e)
