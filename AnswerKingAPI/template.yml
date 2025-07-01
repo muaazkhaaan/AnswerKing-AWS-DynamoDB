@@ -9,6 +9,15 @@ Parameters:
     Default: Muaaz
 
 Resources:
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: answerking-common-layer
+      Description: Shared utilities for AnswerKing
+      ContentUri: layers/python
+      CompatibleRuntimes:
+        - python3.13
+
   CreateCategoryFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -23,6 +32,8 @@ Resources:
       Policies:
         - DynamoDBWritePolicy:
             TableName: AnswerKingDB
+      Layers:
+        - !Ref CommonLayer
       Tags:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag

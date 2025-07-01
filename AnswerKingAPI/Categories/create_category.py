@@ -1,6 +1,7 @@
 import json
 import boto3
 import uuid
+from utils.response import *
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
@@ -11,10 +12,7 @@ def lambda_handler(event, context):
         category_name = body.get('name', '').strip()
 
         if not category_name:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'Missing category name'})
-            }
+            return error_response(400, 'Missing category name')
 
         category_id = str(uuid.uuid4())
 
@@ -28,16 +26,10 @@ def lambda_handler(event, context):
 
         table.put_item(Item=category)
 
-        return {
-            'statusCode': 201,
-            'body': json.dumps({
-                'message': 'Category created successfully',
-                'category_id': category_id
-            })
-        }
+        return success_response(201, {
+            'message': 'Category created successfully',
+            'category_id': category_id
+        })
 
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return handle_exception(e)
