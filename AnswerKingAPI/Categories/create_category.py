@@ -1,7 +1,7 @@
 import json
 import boto3
 import uuid
-from utils.response import *
+from utils.response import success_response, error_response, handle_exception
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
