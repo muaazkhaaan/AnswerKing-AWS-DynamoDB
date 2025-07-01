@@ -26,6 +26,7 @@ def lambda_handler(event, context):
             }
         )
 
+        # 'Item' is the fixed key for the retrieved record in DynamoDB's get_item() response
         order = response.get('Item')
         if not order:
             return {
