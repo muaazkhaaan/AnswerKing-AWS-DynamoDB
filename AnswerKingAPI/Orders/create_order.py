@@ -57,7 +57,7 @@ def lambda_handler(event, context):
             total_price += price * Decimal(str(quantity))
 
         order_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc)
+        timestamp = str(datetime.now(timezone.utc).isoformat())
 
         order_item = {
             'PK': f'ORDER#{order_id}',
