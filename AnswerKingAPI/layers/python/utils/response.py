@@ -11,3 +11,9 @@ def error_response(status, message):
         'statusCode': status,
         'body': json.dumps({'error': message})
     }
+
+def handle_exception(e):
+    return {
+        'statusCode': 500,
+        'body': json.dumps({'error': str(e)})
+    }
