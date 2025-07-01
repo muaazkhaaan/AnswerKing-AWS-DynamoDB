@@ -14,7 +14,7 @@ Resources:
     Properties:
       LayerName: answerking-common-layer
       Description: Shared utilities for AnswerKing
-      ContentUri: layers/python
+      ContentUri: layers/common
       CompatibleRuntimes:
         - python3.13
 
@@ -124,6 +124,8 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: AnswerKingDB
+      Layers:
+        - !Ref CommonLayer
       Tags:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag
