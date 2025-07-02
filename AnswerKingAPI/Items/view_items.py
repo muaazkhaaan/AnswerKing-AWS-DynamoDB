@@ -1,36 +1,21 @@
-import json
 import boto3
-from decimal import Decimal
+from utils.response import success_response, handle_exception
+from utils.dynamodb_helper import DecimalEncoder
+from boto3.dynamodb.conditions import Attr
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
 
-# Decimal encoder for JSON
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Decimal):
-            return float(obj)
-        return super(DecimalEncoder, self).default(obj)
-
 def lambda_handler(event, context):
     try:
-        response = table.scan(
-            FilterExpression="begins_with(SK, :prefix) AND deleted = :deleted",
-            ExpressionAttributeValues={
-                ":prefix": "item#",
-                ":deleted": False
-            }
+        response = table.query(
+            IndexName='type-index',
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('type').eq('item'),
+            FilterExpression=Attr('deleted').eq(False)
         )
 
         items = response.get('Items', [])
-
-        return {
-            'statusCode': 200,
-            'body': json.dumps(items, cls=DecimalEncoder)
-        }
+        return success_response(200, items, encoder=DecimalEncoder)
 
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return handle_exception(e)
