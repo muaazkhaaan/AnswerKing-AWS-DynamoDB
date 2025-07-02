@@ -1,4 +1,6 @@
 import json
+import re
+from decimal import Decimal
 
 def get_path_param(event, key):
     value = event.get('pathParameters', {}).get(key, '').strip()
@@ -17,3 +19,11 @@ def require_fields(data, fields):
     missing = [field for field in fields if not data.get(field, '').strip()]
     if missing:
         raise ValueError(f"Missing required fields: {', '.join(missing)}")
+
+def validate_price(price):
+    if not re.match(r'^\d+(\.\d{2})$', str(price)):
+        raise ValueError("Price must be a number with exactly 2 decimal places (e.g., 12.99)")
+    try:
+        return Decimal(str(price))
+    except:
+        raise ValueError("Invalid price format")
