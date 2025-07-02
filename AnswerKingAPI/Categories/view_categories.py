@@ -1,29 +1,22 @@
 import json
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
+from utils.response import success_response, handle_exception
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
 
 def lambda_handler(event, context):
     try:
-        response = table.scan(
-            FilterExpression='#type = :category AND deleted = :deleted',
-            ExpressionAttributeNames={'#type': 'type'},
-            ExpressionAttributeValues={
-                ':category': 'category',
-                ':deleted': False
-            }
+        response = table.query(
+            IndexName='type-index',
+            KeyConditionExpression=Key('type').eq('category'),
+            FilterExpression=Attr('deleted').eq(False)
         )
 
         categories = response.get('Items', [])
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps(categories)
-        }
+        return success_response(200, categories)
 
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return handle_exception(e)
