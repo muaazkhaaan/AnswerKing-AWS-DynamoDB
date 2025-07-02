@@ -1,21 +1,17 @@
-import json
 import boto3
-from boto3.dynamodb.conditions import Key
 from decimal import Decimal
+from boto3.dynamodb.conditions import Key
+from utils.validation import get_path_param, parse_body
+from utils.response import success_response, error_response, handle_exception
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
 
 def lambda_handler(event, context):
     try:
-        order_id = event.get('pathParameters', {}).get('order_id', '').strip()
-        if not order_id:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'Missing or invalid order_id'})
-            }
-
-        body = json.loads(event.get('body', '{}'))
+        order_id = get_path_param(event, 'order_id')
+        body = parse_body(event)
+        
         to_add = body.get('add', [])
         to_remove = body.get('remove', [])
 
@@ -29,10 +25,7 @@ def lambda_handler(event, context):
         # 'Item' is the fixed key for the retrieved record in DynamoDB's get_item() response
         order = response.get('Item')
         if not order:
-            return {
-                'statusCode': 404,
-                'body': json.dumps({'error': 'Order does not exist. Check the order number and try again.'})
-            }
+            return error_response(404, 'Order does not exist. Check the order number and try again.')
 
         order_list = order.get('orderList', [])
         order_map = {item['itemID']: item for item in order_list}
@@ -43,10 +36,7 @@ def lambda_handler(event, context):
             quantity = entry.get('quantity')
 
             if not isinstance(item_id, str) or not item_id.strip() or not isinstance(quantity, int) or quantity <= 0:
-                return {
-                    'statusCode': 400,
-                    'body': json.dumps({'error': f'Invalid itemID or quantity in add list: {entry}'})
-                }
+                return error_response(400, f'Invalid itemID or quantity in add list: {entry}')
 
             result = table.query(
                 IndexName='ItemIDIndex',
@@ -55,17 +45,11 @@ def lambda_handler(event, context):
 
             items = result.get('Items', [])
             if not items:
-                return {
-                    'statusCode': 404,
-                    'body': json.dumps({'error': f'Item {item_id} not found'})
-                }
+                return error_response(404, f'Item {item_id} not found')
 
             item_data = items[0]
             if item_data.get('deleted', True):
-                return {
-                    'statusCode': 400,
-                    'body': json.dumps({'error': f'Item {item_id} is marked as deleted and cannot be added'})
-                }
+                return error_response(400, f'Item {item_id} is marked as deleted and cannot be added')
 
             if item_id in order_map:
                 order_map[item_id]['quantity'] += quantity
@@ -79,10 +63,7 @@ def lambda_handler(event, context):
         for entry in to_remove:
             item_id = entry.get('itemID')
             if not isinstance(item_id, str) or not item_id.strip():
-                return {
-                    'statusCode': 400,
-                    'body': json.dumps({'error': f'Invalid itemID in remove list: {entry}'})
-                }
+                return error_response(400, f'Invalid itemID in remove list: {entry}')
 
             order_map.pop(item_id, None)
 
@@ -116,13 +97,9 @@ def lambda_handler(event, context):
             }
         )
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'message': 'Order updated successfully'})
-        }
+        return success_response(200, {'message': 'Order updated successfully'})
 
+    except ValueError as ve:
+        return error_response(400, str(ve))
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return handle_exception(e)
