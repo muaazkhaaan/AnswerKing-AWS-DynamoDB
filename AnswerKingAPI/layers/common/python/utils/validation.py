@@ -1,21 +1,36 @@
-import boto3
-from utils.response import success_response, handle_exception
-from utils.dynamodb_helper import DecimalEncoder
-from boto3.dynamodb.conditions import Attr
+import json
+import re
+from decimal import Decimal
 
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('AnswerKingDB')
+def get_path_param(event, key):
+    value = event.get('pathParameters', {}).get(key, '').strip()
+    if not value:
+        raise ValueError(f"Missing or invalid {key}")
+    return value
 
-def lambda_handler(event, context):
+def parse_body(event):
     try:
-        response = table.query(
-            IndexName='type-index',
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('type').eq('item'),
-            FilterExpression=Attr('deleted').eq(False)
-        )
-
-        items = response.get('Items', [])
-        return success_response(200, items, encoder=DecimalEncoder)
-
+        return json.loads(event.get('body', '{}'))
     except Exception as e:
-        return handle_exception(e)
+        print(f"JSON decode error: {e}")
+        raise ValueError("Invalid JSON body")
+
+def require_fields(data, fields):
+    missing = [field for field in fields if not data.get(field, '').strip()]
+    if missing:
+        raise ValueError(f"Missing required fields: {', '.join(missing)}")
+
+def validate_price(price):
+    if not re.match(r'^\d+(\.\d{2})$', str(price)):
+        raise ValueError("Price must be a number with exactly 2 decimal places (e.g., 12.99)")
+    try:
+        return Decimal(str(price))
+    except:
+        raise ValueError("Invalid price format")
+    
+def validate_order_entry(entry):
+    item_id = entry.get('itemID')
+    quantity = entry.get('quantity')
+
+    if not item_id or quantity is None or quantity <= 0:
+        raise ValueError('Each order item must include itemID and quantity > 0')
