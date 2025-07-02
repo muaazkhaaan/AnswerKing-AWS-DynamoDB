@@ -1,24 +1,21 @@
-import json
 import boto3
 import uuid
 from decimal import Decimal
+from utils.validation import parse_body, require_fields
+from utils.response import success_response, error_response, handle_exception
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
 
 def lambda_handler(event, context):
     try:
-        body = json.loads(event['body'])
-        name = body.get('name', '').strip()
-        category_id = body.get('category_id', '').strip()
-        price = body.get('price')
-        description = body.get('description', '').strip()
+        body = parse_body(event)
+        require_fields(body, ['name', 'category_id', 'price', 'description'])
 
-        if not all([name, category_id, price, description]):
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'Missing required fields'})
-            }
+        name = body['name'].strip()
+        category_id = f"CATEGORY#{body['category_id'].strip()}"
+        price = Decimal(str(body['price']))
+        description = body['description'].strip()
 
         category_check = table.get_item(
             Key={
@@ -28,10 +25,7 @@ def lambda_handler(event, context):
         )
 
         if 'Item' not in category_check:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'Invalid category_id: does not exist'})
-            }
+            return error_response(400, 'Invalid category_id: does not exist')
 
         item_id = str(uuid.uuid4())
 
@@ -40,7 +34,7 @@ def lambda_handler(event, context):
             'SK': f'item#{item_id}',
             'itemID': item_id,
             'name': name,
-            'price': Decimal(str(price)),
+            'price': price,
             'description': description,
             'type': 'item',
             'deleted': False
@@ -48,13 +42,9 @@ def lambda_handler(event, context):
 
         table.put_item(Item=item)
 
-        return {
-            'statusCode': 201,
-            'body': json.dumps({'message': 'Item created'})
-        }
+        return success_response(201, {'message': 'Item created'})
 
+    except ValueError as ve:
+        return error_response(400, str(ve))
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return handle_exception(e)
