@@ -1,30 +1,17 @@
-import json
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
-from decimal import Decimal
+from utils.response import success_response, error_response, handle_exception
+from utils.validation import get_path_param
+from utils.dynamodb_helper import DecimalEncoder
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
 
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Decimal):
-            return str(obj)
-        return super().default(obj)
-
 def lambda_handler(event, context):
     try:
-        category_id = event.get('pathParameters', {}).get('category_id', '').strip()
-
-        if not category_id:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'Missing or invalid category ID'})
-            }
-
+        category_id = get_path_param(event, 'category_id')
         pk_value = f'CATEGORY#{category_id}'
 
-        # Query all SKs starting with 'item#' under the given PK
         response = table.query(
             KeyConditionExpression=Key('PK').eq(pk_value) & Key('SK').begins_with('item#'),
             FilterExpression=Attr('deleted').eq(False)
@@ -33,18 +20,11 @@ def lambda_handler(event, context):
         items = response.get('Items', [])
 
         if not items:
-            return {
-                'statusCode': 404,
-                'body': json.dumps({'error': f'No items found for category {category_id}'})
-            }
+            return error_response(404, f'No items found for category {category_id}')
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps(items, cls=DecimalEncoder)
-        }
+        return success_response(200, items, encoder=DecimalEncoder)
 
+    except ValueError as ve:
+        return error_response(400, str(ve))
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return handle_exception(e)
