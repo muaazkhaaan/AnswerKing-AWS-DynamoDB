@@ -1,4 +1,3 @@
-import json
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 from utils.response import success_response, handle_exception

@@ -70,6 +70,8 @@ Resources:
       Policies:
         - DynamoDBReadPolicy:
             TableName: AnswerKingDB
+      Layers:
+        - !Ref CommonLayer
       Tags:
         Project: AnswerKing
         deployed-by: !Ref DeployedByTag

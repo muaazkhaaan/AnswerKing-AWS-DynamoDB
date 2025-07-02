@@ -1,9 +1,14 @@
 import json
 
-def success_response(status, body_dict):
+def success_response(status, body_dict, encoder=None):
+    if encoder:
+        body = json.dumps(body_dict, cls=encoder)
+    else:
+        body = json.dumps(body_dict)
+    
     return {
         'statusCode': status,
-        'body': json.dumps(body_dict)
+        'body': body
     }
 
 def error_response(status, message):
