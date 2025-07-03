@@ -2,7 +2,7 @@ from unittest.mock import patch
 from Categories.view_categories import lambda_handler
 
 @patch('Categories.view_categories.table')
-def test_lambda_handler_success(mock_table):
+def test_lambda_handler_query_success_returns_200(mock_table):
     mock_table.query.return_value = {
         'Items': [
             {'PK': 'CATEGORY#1', 'SK': 'METADATA', 'name': 'Starters', 'type': 'category', 'deleted': False},
@@ -15,8 +15,9 @@ def test_lambda_handler_success(mock_table):
     assert 'Starters' in result['body']
     assert 'Mains' in result['body']
 
+
 @patch('Categories.view_categories.table')
-def test_lambda_handler_failure(mock_table):
+def test_lambda_handler_query_raises_exception_returns_500_error(mock_table):
     mock_table.query.side_effect = Exception("Something went wrong")
 
     result = lambda_handler({}, {})
