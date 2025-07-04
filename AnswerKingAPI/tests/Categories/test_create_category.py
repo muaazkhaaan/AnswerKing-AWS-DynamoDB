@@ -11,13 +11,13 @@ def test_lambda_handler_valid_input_returns_201(mock_uuid, mock_table):
     }
 
     result = lambda_handler(event, {})
-    
-    assert result['statusCode'] == 201
     body = json.loads(result['body'])
-    assert body['message'] == 'Category created successfully'
-    assert body['category_id'] == 'test-category-id'
     mock_table.put_item.assert_called_once()
     saved_item = mock_table.put_item.call_args[1]['Item']
+    
+    assert result['statusCode'] == 201
+    assert body['message'] == 'Category created successfully'
+    assert body['category_id'] == 'test-category-id'
     assert saved_item['name'] == 'Drinks'
     assert saved_item['PK'] == 'CATEGORY#test-category-id'
     assert saved_item['type'] == 'category'
@@ -30,9 +30,10 @@ def test_lambda_handler_blank_name_returns_400(mock_table):
     }
 
     result = lambda_handler(event, {})
+    mock_table.put_item.assert_not_called()
+    
     assert result['statusCode'] == 400
     assert 'Missing category name' in result['body']
-    mock_table.put_item.assert_not_called()
 
 @patch('Categories.create_category.table')
 def test_lambda_handler_invalid_json_returns_500(mock_table):
