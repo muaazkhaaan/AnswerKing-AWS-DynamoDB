@@ -7,13 +7,24 @@ table = dynamodb.Table('AnswerKingDB')
 
 def lambda_handler(event, context):
     try:
-        category_id = get_path_param(event, 'category_id')
         item_id = get_path_param(event, 'item_id')
+
+        response = table.query(
+            IndexName='ItemIDIndex',  # Use GSI to find itemID and match up keys to the itemID
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('itemID').eq(item_id),
+            FilterExpression=boto3.dynamodb.conditions.Attr('deleted').eq(False)
+        )
+
+        items = response.get('Items', [])
+        if not items:
+            return error_response(404, 'Item not found')
+
+        item = items[0] # There can only be 1 itemID per item in the table
 
         table.update_item(
             Key={
-                'PK': f'CATEGORY#{category_id}',
-                'SK': f'item#{item_id}'
+                'PK': item['PK'],
+                'SK': item['SK']
             },
             UpdateExpression='SET deleted = :deleted',
             ExpressionAttributeValues={':deleted': True},

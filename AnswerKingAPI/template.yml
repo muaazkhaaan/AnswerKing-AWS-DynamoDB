@@ -107,7 +107,7 @@ Resources:
         DeleteItemAPI:
           Type: Api
           Properties:
-            Path: /categories/{category_id}/items/{item_id}
+            Path: /items/{item_id}
             Method: DELETE
       Policies:
         - DynamoDBCrudPolicy:
@@ -167,7 +167,7 @@ Resources:
         UpdateItemAPI:
           Type: Api
           Properties:
-            Path: /categories/{category_id}/items/{item_id}
+            Path: /items/{item_id}
             Method: PUT
       Policies:
         - DynamoDBCrudPolicy:
@@ -257,7 +257,7 @@ Outputs:
 
   DeleteItemApiUrl:
     Description: "API Gateway endpoint URL for deleting item // DELETE"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}/items/{item_id}"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items/{item_id}"
 
   DeleteCategoryApiUrl:
     Description: "API Gateway endpoint URL for deleting category // DELETE"
@@ -269,7 +269,7 @@ Outputs:
 
   UpdateItemApiUrl:
     Description: "API Gateway endpoint URL for update item // PUT"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}/items/{item_id}"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items/{item_id}"
 
   UpdateCategoryApiUrl:
     Description: "API Gateway endpoint URL for updating category // PUT"
