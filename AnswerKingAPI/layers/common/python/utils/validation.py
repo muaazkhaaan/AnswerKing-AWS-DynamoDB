@@ -16,7 +16,12 @@ def parse_body(event):
         raise ValueError("Invalid JSON body")
 
 def require_fields(data, fields):
-    missing = [field for field in fields if not data.get(field, '').strip()]
+    missing = [
+        field for field in fields 
+        if field not in data 
+        or (isinstance(data[field], str) and data[field].strip() == '') 
+        or (not isinstance(data[field], str) and not data[field])
+    ]
     if missing:
         raise ValueError(f"Missing required fields: {', '.join(missing)}")
 
