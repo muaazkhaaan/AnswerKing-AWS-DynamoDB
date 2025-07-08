@@ -35,11 +35,11 @@ def test_lambda_handler_valid_input_returns_201(mock_uuid, mock_table):
     assert saved_item['itemID'] == 'test-item-id'
 
 @patch('Items.create_item.table')
-def test_lambda_handler_missing_field_returns_400():
+def test_lambda_handler_missing_field_returns_400(mock_table):
     event = {
         'body': json.dumps({
             'name': 'No Category',
-            'price': 12,
+            'price': '12',
             'description': 'Missing category_id'
         })
     }
@@ -48,3 +48,81 @@ def test_lambda_handler_missing_field_returns_400():
 
     assert result['statusCode'] == 400
     assert 'Missing required field' in result['body']
+
+@patch('Items.create_item.table')
+def test_lambda_handler_invalid_category_id_returns_400(mock_table):
+    mock_table.get_item.return_value = {}
+
+    event = {
+        'body': json.dumps({
+            'name': 'Item',
+            'category_id': 'nonexistent',
+            'price': '5',
+            'description': 'Test'
+        })
+    }
+
+    result = lambda_handler(event, {})
+
+    assert result['statusCode'] == 400
+    assert 'Invalid category_id' in result['body']
+
+@patch('Items.create_item.table')
+def test_lambda_handler_unexpected_exception_returns_500(mock_table):
+    mock_table.get_item.side_effect = Exception("DynamoDB failure")
+
+    event = {
+        'body': json.dumps({
+            'name': 'Item',
+            'category_id': 'abc',
+            'price': '5',
+            'description': 'Test'
+        })
+    }
+
+    result = lambda_handler(event, {})
+
+    assert result['statusCode'] == 500
+    assert 'DynamoDB failure' in result['body']
+
+
+''' ATTEMPT PRICING VALIDATION 
+
+
+@patch('Items.create_item.table')
+def test_lambda_handler_invalid_price_format_returns_400(mock_table):
+    mock_table.get_item.return_value = {'Item': {'PK': 'CATEGORY#abc', 'SK': 'METADATA'}}
+    
+    event = {
+        'body': json.dumps({
+            'name': 'Invalid Item',
+            'category_id': 'abc',
+            'price': 'five',
+            'description': 'Invalid price format'
+        })
+    }
+
+    result = lambda_handler(event, {})
+    
+    assert result['statusCode'] == 400
+    assert 'Invalid price' in result['body'] or 'could not convert' in result['body']
+
+@patch('Items.create_item.table')
+def test_lambda_handler_negative_price_returns_400(mock_table):
+    mock_table.get_item.return_value = {'Item': {'PK': 'CATEGORY#abc', 'SK': 'METADATA'}}
+
+    event = {
+        'body': json.dumps({
+            'name': 'Negative Priced Item',
+            'category_id': 'abc',
+            'price': -9.99,  # negative price
+            'description': 'This should fail'
+        })
+    }
+
+    result = lambda_handler(event, {})
+    
+    assert result['statusCode'] == 400
+    assert 'Invalid price' in result['body'] or 'must be greater than or equal to 0' in result['body']
+
+'''
