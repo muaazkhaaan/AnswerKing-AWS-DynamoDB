@@ -1,7 +1,7 @@
 import boto3
 import uuid
 from decimal import Decimal
-from utils.validation import parse_body, require_fields
+from utils.validation import parse_body, require_fields, validate_price
 from utils.response import success_response, error_response, handle_exception
 
 dynamodb = boto3.resource('dynamodb')
@@ -26,6 +26,8 @@ def lambda_handler(event, context):
 
         if 'Item' not in category_check:
             return error_response(400, 'Invalid category_id: does not exist')
+        
+        price = validate_price(price)
 
         item_id = str(uuid.uuid4())
 
