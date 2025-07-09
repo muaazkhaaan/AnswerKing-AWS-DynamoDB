@@ -20,7 +20,12 @@ def test_lambda_handler_valid_update_returns_200(mock_table):
     result = lambda_handler(event, {})
     body = json.loads(result['body'])
 
-    mock_table.update_item.assert_called_once()
+    mock_table.update_item.assert_called_once_with(
+        Key={'PK': 'CATEGORY#test-id', 'SK': 'METADATA'},
+        UpdateExpression='SET #name = :name',
+        ExpressionAttributeNames={'#name': 'name'},
+        ExpressionAttributeValues={':name': 'New Name'}
+    )
     
     assert result['statusCode'] == 200
     assert body['message'] == 'Category updated successfully'

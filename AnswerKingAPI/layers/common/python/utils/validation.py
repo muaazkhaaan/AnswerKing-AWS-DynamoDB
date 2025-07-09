@@ -27,7 +27,7 @@ def require_fields(data, fields):
 
 def validate_price(price):
     if not re.match(r'^\d+(\.\d{2})$', str(price)):
-        raise ValueError("Price must be a number with exactly 2 decimal places (e.g., 12.99)")
+        raise ValueError("Price must be a POSITIVE number with exactly 2 decimal places (e.g., 12.99)")
     try:
         return Decimal(str(price))
     except:
