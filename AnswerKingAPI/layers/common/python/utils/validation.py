@@ -38,4 +38,4 @@ def validate_order_entry(entry):
     quantity = entry.get('quantity')
 
     if not item_id or quantity is None or quantity <= 0:
-        raise ValueError('Each order item must include itemID and quantity > 0')
+        raise ValueError('Each order item must include a VALID itemID and quantity > 0')
