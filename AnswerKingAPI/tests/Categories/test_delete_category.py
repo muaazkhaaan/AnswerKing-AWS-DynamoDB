@@ -1,61 +1,67 @@
 import json
-from unittest.mock import patch
-from Categories.create_category import lambda_handler
+from botocore.exceptions import ClientError
+from unittest.mock import patch, MagicMock
+from Categories.delete_category import lambda_handler
 
-@patch('Categories.create_category.table')
-@patch('Categories.create_category.uuid.uuid4')
-def test_create_category_with_valid_input_returns_201(mock_uuid, mock_table):
-    mock_uuid.return_value = 'test-category-id'
+@patch('Categories.delete_category.table')
+def test_lambda_handler_valid_input_returns_200(mock_table):
     event = {
-        'body': json.dumps({'name': 'Drinks'})
+        'pathParameters': {'category_id': '123'}
     }
 
     result = lambda_handler(event, {})
     body = json.loads(result['body'])
-    saved_item = mock_table.put_item.call_args[1]['Item']
-    mock_table.put_item.assert_called_once()
 
-    assert result['statusCode'] == 201
-    assert body['message'] == 'Category created successfully'
-    assert body['category_id'] == 'test-category-id'
-    assert saved_item['name'] == 'Drinks'
-    assert saved_item['PK'] == 'CATEGORY#test-category-id'
-    assert saved_item['type'] == 'category'
-    assert saved_item['deleted'] is False
+    mock_table.update_item.assert_called_once_with(
+        Key={'PK': 'CATEGORY#123', 'SK': 'METADATA'},
+        UpdateExpression='SET deleted = :deleted',
+        ExpressionAttributeValues={':deleted': True},
+        ConditionExpression='attribute_exists(PK) AND attribute_exists(SK)'
+    )
 
-@patch('Categories.create_category.table')
-def test_create_category_with_blank_name_returns_400(mock_table):
+    assert result['statusCode'] == 200
+    assert body['message'] == 'Category deleted successfully'
+
+@patch('Categories.delete_category.table')
+def test_lambda_handler_missing_category_id_returns_400(mock_table):
     event = {
-        'body': json.dumps({'name': '   '})
+        'pathParameters': {}
     }
 
     result = lambda_handler(event, {})
-    mock_table.put_item.assert_not_called()
+    assert result['statusCode'] == 400
+    assert 'Missing or invalid category_id' in result['body']
+
+@patch('Categories.delete_category.table')
+def test_lambda_handler_category_not_found_returns_400(mock_table):
+    mock_table.update_item.side_effect = ClientError(
+        error_response={
+            'Error': {
+                'Code': 'ConditionalCheckFailedException',
+                'Message': 'The conditional request failed'
+            }
+        },
+        operation_name='UpdateItem'
+    )
+
+    event = {
+        'pathParameters': {'category_id': 'nonexistent'}
+    }
+
+    result = lambda_handler(event, {})
+    body = json.loads(result['body'])
 
     assert result['statusCode'] == 400
-    assert 'Missing category name' in result['body']
+    assert 'not found or already deleted' in body['error'].lower()
 
-@patch('Categories.create_category.table')
-def test_create_category_with_invalid_json_returns_500(mock_table):
+@patch('Categories.delete_category.table')
+def test_lambda_handler_generic_exception_returns_500(mock_table):
+    mock_table.update_item.side_effect = Exception("Something went wrong")
+
     event = {
-        'body': '{bad json}'
+        'pathParameters': {'category_id': '123'}
     }
 
     result = lambda_handler(event, {})
-
     assert result['statusCode'] == 500
-    assert 'error' in result['body']
-
-@patch('Categories.create_category.table')
-@patch('Categories.create_category.uuid.uuid4')
-def test_create_category_with_dynamodb_failure_returns_500(mock_uuid, mock_table):
-    mock_uuid.return_value = 'fail-id'
-    mock_table.put_item.side_effect = Exception("DynamoDB error")
-    event = {
-        'body': json.dumps({'name': 'Sides'})
-    }
-
-    result = lambda_handler(event, {})
-
-    assert result['statusCode'] == 500
-    assert 'DynamoDB error' in result['body']
+    assert 'Something went wrong' in result['body']
