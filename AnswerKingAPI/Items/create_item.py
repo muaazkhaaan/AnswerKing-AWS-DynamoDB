@@ -42,9 +42,12 @@ def lambda_handler(event, context):
             'deleted': False
         }
 
-        table.put_item(Item=item)
+        table.put_item(Item=item, ConditionExpression='attribute_not_exists(SK)')
 
-        return success_response(201, {'message': 'Item created'})
+        return success_response(201, {
+            'message': 'Item created',
+            'item_id': item_id
+        })
 
     except ValueError as ve:
         return error_response(400, str(ve))

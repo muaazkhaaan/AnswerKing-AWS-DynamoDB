@@ -1,16 +1,17 @@
-import json
 import boto3
 import uuid
 from utils.response import success_response, error_response, handle_exception
+from utils.validation import parse_body, require_fields
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('AnswerKingDB')
 
 def lambda_handler(event, context):
     try:
-        body = json.loads(event['body'])
+        body = parse_body(event)
+        require_fields(body, ['name'])
+        
         category_name = body.get('name', '').strip()
-
         if not category_name:
             return error_response(400, 'Missing category name')
 
