@@ -50,7 +50,7 @@ Resources:
             Path: /items
             Method: POST
       Policies:
-        - DynamoDBCrudPolicy:
+        - DynamoDBWritePolicy:
             TableName: AnswerKingDB
       Layers:
         - !Ref CommonLayer
