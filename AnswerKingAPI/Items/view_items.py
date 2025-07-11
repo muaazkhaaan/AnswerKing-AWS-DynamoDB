@@ -15,6 +15,10 @@ def lambda_handler(event, context):
         )
 
         items = response.get('Items', [])
+
+        if not items:
+            return success_response(200, {"message": "There are no items to display"})
+        
         return success_response(200, items, encoder=DecimalEncoder)
 
     except Exception as e:

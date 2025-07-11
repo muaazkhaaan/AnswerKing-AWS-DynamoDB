@@ -15,6 +15,9 @@ def lambda_handler(event, context):
 
         categories = response.get('Items', [])
 
+        if not categories:
+            return success_response(200, {"message": "There are no categories to display"})
+
         return success_response(200, categories)
 
     except Exception as e:
