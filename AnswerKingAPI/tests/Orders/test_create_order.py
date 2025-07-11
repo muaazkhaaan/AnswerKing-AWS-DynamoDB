@@ -15,7 +15,7 @@ def test_lambda_handler_valid_order_returns_201(mock_datetime, mock_uuid, mock_t
             'PK': 'CATEGORY#123',
             'SK': 'item#123',
             'itemID': '123',
-            'price': "10.00",
+            'price': '10.00',
             'deleted': False
         }]
     }
@@ -49,5 +49,5 @@ def test_lambda_handler_valid_order_returns_201(mock_datetime, mock_uuid, mock_t
 
 '''
 Additional tests to do: 
-Send in a balnk orderList, use invalid itemID, check that we cannot pass in <=0 as quantitiy and 500 error
+Send in a blank orderList, use invalid itemID, check that we cannot pass in <=0 as quantitiy and 500 error
 '''
