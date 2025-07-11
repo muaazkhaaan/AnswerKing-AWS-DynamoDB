@@ -6,9 +6,7 @@ from Orders.create_order import lambda_handler
 @patch('Orders.create_order.table')
 @patch('Orders.create_order.uuid.uuid4')
 @patch('Orders.create_order.datetime')
-def test_lambda_handler_valid_order(mock_datetime, mock_uuid, mock_table):
-    mock_datetime.now.return_value.isoformat.return_value = '2025-07-08T12:00:00+00:00'
-    mock_datetime.now.return_value = mock_datetime
+def test_lambda_handler_valid_order_returns_201(mock_datetime, mock_uuid, mock_table):
     mock_datetime.now.return_value.isoformat.return_value = '2025-07-08T12:00:00+00:00'
     mock_uuid.return_value = 'test-order-id'
 
@@ -48,3 +46,8 @@ def test_lambda_handler_valid_order(mock_datetime, mock_uuid, mock_table):
     assert result['statusCode'] == 201
     assert body['message'] == 'Order created successfully'
     assert body['orderID'] == 'test-order-id'
+
+'''
+Additional tests to do: 
+Send in a balnk orderList, use invalid itemID, check that we cannot pass in <=0 as quantitiy and 500 error
+'''
