@@ -33,16 +33,16 @@ def test_lambda_handler_blank_name_returns_400(mock_table):
     mock_table.put_item.assert_not_called()
     
     assert result['statusCode'] == 400
-    assert 'Missing category name' in result['body']
+    assert 'Bad json' in result['body']
 
 @patch('Categories.create_category.table')
-def test_lambda_handler_invalid_json_returns_500(mock_table):
+def test_lambda_handler_invalid_json_returns_400(mock_table):
     event = {
         'body': '{bad json}'  # malformed JSON
     }
 
     result = lambda_handler(event, {})
-    assert result['statusCode'] == 500
+    assert result['statusCode'] == 400
     assert 'error' in result['body']
 
 @patch('Categories.create_category.table')

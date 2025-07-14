@@ -32,5 +32,8 @@ def lambda_handler(event, context):
             'category_id': category_id
         })
 
+    except ValueError as ve:
+        return error_response(400, 'Bad json')
+
     except Exception as e:
         return handle_exception(e)
