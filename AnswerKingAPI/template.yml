@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: AnswerKing API
 Transform: AWS::Serverless-2016-10-31
 
+Globals:
+  Api:
+    Name: AnswerKingApi
+    Auth:
+      ApiKeyRequired: true
+
 Parameters:
   DeployedByTag:
     Description: Standard deploy tag
@@ -9,6 +15,42 @@ Parameters:
     Default: Muaaz
 
 Resources:
+  AnswerKingApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: AnswerKingApi
+      StageName: Prod
+      Auth:
+        ApiKeyRequired: true
+
+  BasicUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      UsagePlanName: BasicPlan
+      ApiStages:
+        - ApiId: !Ref AnswerKingApi
+          Stage: Prod
+      Throttle:
+        RateLimit: 10
+        BurstLimit: 5
+      Description: Basic usage plan with API key
+
+  MuaazApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: Muaaz-Key
+      Enabled: true
+      StageKeys:
+        - RestApiId: !Ref AnswerKingApi
+          StageName: Prod
+
+  MuaazApiKeyUsagePlanAttachment:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref MuaazApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref BasicUsagePlan
+
   CommonLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -27,6 +69,7 @@ Resources:
         CreateCategoryAPI:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /categories
             Method: POST
       Policies:
@@ -47,6 +90,7 @@ Resources:
         CreateItemAPI:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /items
             Method: POST
       Policies:
@@ -67,6 +111,7 @@ Resources:
         ApiGetItemsByCategory:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /categories/{category_id}/items
             Method: GET
       Policies:
@@ -87,6 +132,7 @@ Resources:
         ApiGetItems:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /items
             Method: GET
       Policies:
@@ -107,6 +153,7 @@ Resources:
         DeleteItemAPI:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /items/{item_id}
             Method: DELETE
       Policies:
@@ -127,6 +174,7 @@ Resources:
         DeleteCategoryAPI:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /categories/{category_id}
             Method: DELETE
       Policies:
@@ -147,6 +195,7 @@ Resources:
         ApiGetCategories:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /categories
             Method: GET
       Policies:
@@ -167,6 +216,7 @@ Resources:
         UpdateItemAPI:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /items/{item_id}
             Method: PUT
       Policies:
@@ -176,7 +226,7 @@ Resources:
         - !Ref CommonLayer
       Tags:
         Project: AnswerKing
-        deployed-by: !Ref DeployedByTag  
+        deployed-by: !Ref DeployedByTag
 
   UpdateCategoryFunction:
     Type: AWS::Serverless::Function
@@ -187,6 +237,7 @@ Resources:
         UpdateCategoryAPI:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /categories/{category_id}
             Method: PUT
       Policies:
@@ -196,7 +247,7 @@ Resources:
         - !Ref CommonLayer
       Tags:
         Project: AnswerKing
-        deployed-by: !Ref DeployedByTag  
+        deployed-by: !Ref DeployedByTag
 
   CreateOrderFunction:
     Type: AWS::Serverless::Function
@@ -207,6 +258,7 @@ Resources:
         CreateOrderAPI:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /orders
             Method: POST
       Policies:
@@ -227,6 +279,7 @@ Resources:
         PatchOrderItemsAPI:
           Type: Api
           Properties:
+            RestApiId: !Ref AnswerKingApi
             Path: /orders/{order_id}
             Method: PUT
       Policies:
@@ -241,44 +294,44 @@ Resources:
 Outputs:
   CreateCategoryApiUrl:
     Description: "API Gateway endpoint URL for creating categories // POST"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories"
 
   CreateItemApiUrl:
     Description: "API Gateway endpoint URL for creating items // POST"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
 
   GetItemsByCategoryApiUrl:
     Description: "API Gateway endpoint URL for viewing items by category // GET"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}/items"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}/items"
 
   GetItemsApiUrl:
     Description: "API Gateway endpoint URL for viewing all items // GET"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items"
 
   DeleteItemApiUrl:
     Description: "API Gateway endpoint URL for deleting item // DELETE"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items/{item_id}"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items/{item_id}"
 
   DeleteCategoryApiUrl:
     Description: "API Gateway endpoint URL for deleting category // DELETE"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
 
   ViewAllCategoriesApiUrl:
     Description: "API Gateway endpoint URL for viewing all categories // GET"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories"
 
   UpdateItemApiUrl:
     Description: "API Gateway endpoint URL for update item // PUT"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items/{item_id}"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/items/{item_id}"
 
   UpdateCategoryApiUrl:
     Description: "API Gateway endpoint URL for updating category // PUT"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categories/{category_id}"
 
   CreateOrderApiUrl:
     Description: "API Gateway endpoint URL for creating orders // POST"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orders"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orders"
 
-  UpdateOrderItemsFunction:
+  UpdateOrderItemsApiUrl:
     Description: "API Gateway endpoint URL for update order items // PUT"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orders/{order_id}"
+    Value: !Sub "https://${AnswerKingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orders/{order_id}"
